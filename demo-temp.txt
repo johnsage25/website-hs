@@ -1,0 +1,254 @@
+import React, { useState } from 'react'
+import { withTheme } from '../Layout/HocFront'
+import { Affix, Anchor, Box, Button, Container, Flex, Group, LoadingOverlay, Menu, Paper, Radio, Tabs, Text, Title, createStyles, rem } from '@mantine/core'
+import { AiOutlineCalendar } from 'react-icons/ai'
+import { IconAdjustmentsAlt, IconChevronDown, IconChevronUp, IconMessageCircle, IconPhoto, IconSettings } from '@tabler/icons'
+import FilterBlock from './_Component/FilterBlock'
+import { ServerSideProps } from '../../types/ServerInterface'
+import { RegionList } from '../../node/RegionList'
+import { trpc } from '../../utils/trpc'
+import _ from 'lodash'
+import { useWindowScroll } from '@mantine/hooks'
+import StickyBox from "react-sticky-box";
+
+const useStyles = createStyles((theme) => ({
+
+
+    tabs: {
+        [theme.fn.smallerThan('sm')]: {
+            display: 'none',
+        },
+    },
+
+    tabsList: {
+        // borderBottom: '0 !important',
+    },
+
+    tab: {
+        fontWeight: 500,
+        height: rem(44),
+        backgroundColor: 'transparent',
+
+        '&:hover': {
+            backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1],
+        },
+
+        '&[data-active]': {
+            backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+            borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[2],
+        },
+    },
+}));
+
+const VirtualServers = (props: any) => {
+    const { classes, theme, cx } = useStyles();
+    const [opened, setOpened] = useState(false);
+    const [value, setValue] = useState('hr');
+    const landingQuery = trpc.node.landingQuery.useQuery()
+    const [scroll, scrollTo] = useWindowScroll();
+    console.log(landingQuery.data);
+
+    const vmList = landingQuery.data || []
+
+    return (
+
+        <Box className=' min-h-[40vh] '>
+            <Box className='header border-b'>
+                <Container size={"xl"}>
+                    <div className='flex gap-3 py-3 '>
+                        <Anchor className='text-gray-800'>Virtual Servers</Anchor>
+                        <Anchor className='text-gray-800'>Dedicated Servers</Anchor>
+                    </div>
+                </Container>
+            </Box>
+            <Box className='text-center py-20 space-y-3 bg-gray-100'>
+
+                <Title>Virtual Servers</Title>
+                <Text>KVM-based virtual servers with shared or dedicated resources for small to average workloads.</Text>
+            </Box>
+
+            <Box >
+
+
+                <Tabs variant="outline" classNames={{
+                    root: classes.tabs,
+                    tabsList: classes.tabsList,
+                    tab: classes.tab,
+                }} defaultValue="gallery">
+
+                    <StickyBox offsetTop={70} offsetBottom={20} className=' z-30 bg-white'>
+                        <Tabs.List className=' w-full px-24 pt-2 bg-gray-100'>
+
+
+                            <Flex justify={"space-between"} className=' w-full'>
+                                <Flex>
+                                    <Tabs.Tab value="gallery" >All plans</Tabs.Tab>
+                                    <Tabs.Tab value="messages" >Shared resources</Tabs.Tab>
+                                    <Tabs.Tab value="settings" >Dedicated resources</Tabs.Tab>
+                                </Flex>
+                                <Flex gap={10}>
+
+                                    <Menu shadow={"md"} opened={opened} width={200} onChange={setOpened} position="bottom-end" offset={2} withArrow withinPortal>
+                                        <Menu.Target>
+                                            <Button rightIcon={opened ? <IconChevronDown className=' text-blue-azure-500' stroke={1.2} /> : <IconChevronUp className=' text-blue-azure-500' stroke={1.2} />} className=' bg-white' variant="default">
+                                                Billing cycle
+                                            </Button>
+                                        </Menu.Target>
+
+                                        <Menu.Dropdown>
+                                            <Radio.Group
+                                                name="favoriteFramework"
+                                                size="xs"
+                                                value={value}
+                                                onChange={setValue}
+                                            >
+                                                <Menu.Item
+                                                    onClick={() => {
+                                                        setValue("hr")
+                                                    }} icon={<Radio value="hr" />}>Hourly</Menu.Item>
+                                                <Menu.Item
+                                                    onClick={() => {
+                                                        setValue("mo")
+                                                    }} icon={<Radio value="mo" />}>Monthly</Menu.Item>
+                                                <Menu.Item
+                                                    onClick={() => {
+                                                        setValue("qua")
+                                                    }} icon={<Radio value="qua" />}>Quarterly</Menu.Item>
+                                                <Menu.Item
+                                                    onClick={() => {
+                                                        setValue("sa")
+                                                    }} icon={<Radio value="sa" />}>Semi-Annually</Menu.Item>
+                                                <Menu.Item
+                                                    onClick={() => {
+                                                        setValue("a")
+                                                    }}
+                                                    icon={<Radio value="a" />}>Annually</Menu.Item>
+                                            </Radio.Group>
+                                        </Menu.Dropdown>
+                                    </Menu>
+
+                                    <Button rightIcon={<IconAdjustmentsAlt className=' text-blue-azure-500' stroke={1.2} />} className=' bg-white' variant="default">
+                                        Hide filters
+                                    </Button>
+                                </Flex>
+                            </Flex>
+
+                        </Tabs.List>
+
+                        <div>
+                            <Container size={"xl"}>
+                                <FilterBlock props={props} />
+                            </Container>
+                        </div>
+                    </StickyBox>
+
+
+                    <Tabs.Panel value="gallery" pt="xs" className=' min-h-[300px] mt-0 relative'>
+                        <LoadingOverlay visible={landingQuery.isLoading} overlayBlur={2} />
+
+                        <div className=' space-y-8 pt-6'>
+                            <Container size={"xl"} className=' pb-28'>
+                                <Paper className=' min-h-[300px] shadow-sm border' py={15} >
+                                    <Box pos="relative">
+                                        <div className="grid px-8 grid-cols-7 pb-4 gap-4 text-sm text-gray-600 border-b">
+                                            <div >
+                                                <Text>
+                                                    PLAN
+                                                </Text>
+                                            </div>
+                                            <div>
+                                                <Text>CPU</Text>
+                                            </div>
+                                            <div><Text>RAM</Text></div>
+                                            <div><Text>STORAGE</Text></div>
+                                            <div>
+                                                <Text>BANDWIDTH</Text>
+                                            </div>
+                                            <div><Text>PRICE EXCL. VAT</Text></div>
+                                        </div>
+                                        <Box className=' divide-y '>
+                                            {vmList?.map((item: any, key: number) => {
+                                                let price = item?.pricing.filter((item: any) => item.period == "m")
+                                                console.log(price[0]?.amount);
+
+                                                return (
+                                                    <Box key={key} className='grid grid-cols-7 pb-4 gap-4 px-8 py-4'>
+                                                        <div className='flex justify-center flex-col'>
+                                                            <Text fz={15} className=' font-medium'>{item.title}</Text>
+                                                            <Text size={14} className=' text-gray-600'>{_.isEqual(item.type, "stared") ? "Shared resources" : "Dedicated resources"}</Text>
+                                                        </div>
+                                                        <div className='flex flex-col'>
+                                                            <Text size={14} className=' text-gray-600'>{item.vcpu} vCores</Text>
+                                                            <Text size={14} className=' text-gray-600'>{item.cpuType}</Text>
+                                                        </div>
+                                                        <div className='flex items-center'>
+                                                            <Text size={14} className=' text-gray-600'>{item.memory}{item.memoryType?.toLocaleUpperCase()}</Text>
+                                                        </div>
+                                                        <div className='flex items-center'>
+                                                            <Text size={14} className=' text-gray-600'>{item.storage}{item.storageFormat?.toLocaleUpperCase()} {item.storageType}</Text>
+                                                        </div>
+                                                        <div className='flex items-center'>
+                                                            <Text size={14} className=' text-gray-600'>{item.bandwidth}{item.bandwidthType?.toLocaleUpperCase()} {item.storageType}</Text>
+                                                        </div>
+                                                        <div className='flex items-center'>
+                                                            <Group spacing={3}>
+                                                                <Text size={14} className=' text-gray-800 font-semibold'>
+                                                                    {price[0]?.amount}
+                                                                </Text>
+                                                                <Text size={14}>USD</Text>
+                                                                <Text size={14}>/{price[0]?.period}</Text>
+                                                            </Group>
+                                                        </div>
+                                                        <div className='flex items-center'>
+                                                            <Button radius={"xl"} size='sm' className=' bg-blue-azure-500' fullWidth>Configure</Button>
+                                                        </div>
+                                                    </Box>
+                                                )
+                                            })}
+                                        </Box>
+
+                                    </Box>
+                                </Paper>
+                            </Container>
+                        </div>
+
+
+
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="messages" pt="xs" className=' min-h-[300px]'>
+                        <Container size={"xl"}>
+                            Gallery tab content
+                        </Container>
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="settings" pt="xs" className=' min-h-[300px]'>
+                        <Container size={"xl"}>
+                            Gallery tab content
+                        </Container>
+                    </Tabs.Panel>
+                </Tabs>
+
+            </Box>
+            {/* <Box className=' min-h-[300px] bg-white -mt-1 relative border-t'>
+
+            </Box> */}
+
+        </Box>
+
+    )
+}
+export default withTheme(VirtualServers)
+
+export async function getServerSideProps({
+    req,
+    res,
+}: ServerSideProps) {
+    let region = await RegionList()
+    return {
+
+        props: {
+            region
+        },
+    };
+}
